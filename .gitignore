@@ -1,0 +1,6 @@
+# Project exclude paths
+/.gradle/
+/build/
+/three-mesh-ui_kt/build/
+/threejs_kt/build/
+/.idea/
