@@ -53,7 +53,7 @@ val renderer = WebGLRenderer((js("{}").unsafeCast<WebGLRendererParameters>()).ap
   xr.enabled = false
 }
 
-val coins = mutableStateMapOf<Coin, Object3D>()
+val coins = mutableStateMapOf<Object3D, Coin>()
 val scene = createScene()
 
 val buttons = mutableListOf<Block>()
@@ -107,11 +107,13 @@ fun main() {
     Button({
       onClick {
         scope.launch {
-          val newCoins = coinsForAddress(miniAddress)
+          val newCoins = getCoins(address = miniAddress, sendable = false)
           coins.forEach {
-            scene.remove(it.value)
+            scene.remove(it.key)
           }
           coins.clear()
+          focused = null
+          camera.remove(menu)
 //          val newCoins = listOf(
 //            Coin("", ONE, ONE, "0xC01N1D", true, "0x00"),
 //            Coin("", ONE, ONE, "0xC01N1D2", true, "0x01"),
@@ -133,7 +135,7 @@ fun main() {
               })
             }
             coinObj.add(text)
-            coins.put(coin, coinObj)
+            coins.put(coinObj, coin)
             scene.add(coinObj)
             val sql = MDS.sql("SELECT * FROM coinpos WHERE coinid = '${coin.coinid}';")
             val rows = sql.rows as Array<dynamic>
@@ -180,7 +182,7 @@ val coinProps = BlockProps().apply {
   fontTexture = "fonts/Roboto-msdf.png"
 }
 
-var menu: Object3D? = null
+lateinit var menu: Object3D
 val xText = Text(TextProps("X: "))
 val yText = Text(TextProps("Y: "))
 val zText = Text(TextProps("Z: "))
@@ -343,7 +345,6 @@ fun createMenuDisplay() = Block(uiProps).apply {
   add(xControl)
   add(yControl)
   add(zControl)
-  camera.add(this)
   position.set(1, -0.7, -2)
 }
 
@@ -476,14 +477,24 @@ fun clickHandler(event: Event) {
 
 fun objectClicked(intersects: List<Object3D>) =
   intersects.filterIsInstance<Mesh<*, *>>()
-    .firstOrNull(coins.values::hasObjectInHierarchy)
-    ?.let{ findAncestorInList(it, coins.values) }
-    ?.let(::focusOn)
+    .firstOrNull(coins.keys::hasObjectInHierarchy)
+    ?.let { findAncestorInMap(it, coins) }
+    ?.let { (obj, coin) -> focusOn(obj, coin) }
 
-fun focusOn(obj: Object3D) {
+fun focusOn(obj: Object3D, coin: Coin) {
   console.log("focused on", obj)
   focused = obj
-  updateMenu(obj)
+  scope.launch {
+    if (getCoins(coinId = coin.coinid, sendable = true).isNotEmpty()) {
+      console.log("sendable: true")
+      if (!camera.children.contains(menu)) {
+        camera.add(menu)
+        updateMenu(obj)
+      }
+    } else {
+      camera.remove(menu)
+    }
+  }
 }
 
 fun updateCoin(obj: Object3D) {
@@ -513,6 +524,10 @@ fun buttonClicked(intersects: List<Object3D>): Block? {
 fun findAncestorInList(child: Object3D, list: Collection<Object3D>): Object3D? =
   if (list.contains(child)) child
   else child.parent?.let { findAncestorInList(it, list)}
+
+fun findAncestorInMap(child: Object3D, map: Map<Object3D, Coin>): Pair<Object3D, Coin>? =
+  map[child]?.let { child to it }
+    ?: child.parent?.let { findAncestorInMap(it, map)}
 
 fun Collection<Object3D>.hasObjectInHierarchy(obj: Object3D): Boolean =
   if (contains(obj)) true
