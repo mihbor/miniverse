@@ -2,7 +2,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.ionspin.kotlin.bignum.decimal.BigDecimal.Companion.ONE
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
@@ -93,15 +92,15 @@ fun main() {
     Button({
       onClick {
         scope.launch {
-//          val newCoins = coinsForAddress(miniAddress)
+          val newCoins = coinsForAddress(miniAddress)
           coins.forEach {
             scene.remove(it.value)
           }
           coins.clear()
-          val newCoins = listOf(
-            Coin("", ONE, ONE, "0xC01N1D", true, "0x00"),
-            Coin("", ONE, ONE, "0xC01N1D2", true, "0x01"),
-          )
+//          val newCoins = listOf(
+//            Coin("", ONE, ONE, "0xC01N1D", true, "0x00"),
+//            Coin("", ONE, ONE, "0xC01N1D2", true, "0x01"),
+//          )
           newCoins.forEachIndexed { i, coin ->
             val coinObj = Object3D()
             coinObj.name = coin.coinid
@@ -194,16 +193,18 @@ val xControl = Block(BlockProps().apply {
   contentDirection = "row"
   backgroundOpacity = 0.0
 }).apply{
-  add(Block(plusMinusButtonProps).apply {
+  val minusButton = Block(plusMinusButtonProps).apply {
     add(Text(TextProps("-")))
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.x -= 1.0 } }
+      onSet = { focused?.let { it.position.x -= 1.0; updateMenu(it); console.log("decX") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
-  })
+  }
+  add(minusButton)
+  buttons.add(minusButton)
   add(Block(BlockProps().apply {
     width = 0.2
     height = 0.1
@@ -215,16 +216,18 @@ val xControl = Block(BlockProps().apply {
   }).apply {
     add(xText)
   })
-  add(Block(plusMinusButtonProps).apply {
+  val plusButton = Block(plusMinusButtonProps).apply {
     add(Text(TextProps("+")))
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.x += 1.0 } }
+      onSet = { focused?.let { it.position.x += 1.0; updateMenu(it); console.log("incX") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
-  })
+  }
+  add(plusButton)
+  buttons.add(plusButton)
 }
 val yControl = Block(BlockProps().apply {
   contentDirection = "row"
@@ -235,7 +238,7 @@ val yControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.y -= 1.0 } }
+      onSet = { focused?.let { it.position.y -= 1.0; updateMenu(it); console.log("decY") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -257,7 +260,7 @@ val yControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.y += 1.0 } }
+      onSet = { focused?.let { it.position.y += 1.0; updateMenu(it); console.log("incY") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -275,7 +278,7 @@ val zControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.z -= 1.0 } }
+      onSet = { focused?.let { it.position.z -= 1.0; updateMenu(it); console.log("decZ") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -298,7 +301,7 @@ val zControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.z += 1.0 } }
+      onSet = { focused?.let { it.position.z += 1.0; updateMenu(it); console.log("incZ") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -437,8 +440,8 @@ fun clickHandler(event: Event) {
     val click = Vector2()
     val size = Vector2()
     renderer.getSize(size)
-    click.x = 2.0 * event.clientX / size.x - 1
-    click.y = 1 - 2.0 * event.clientY / size.y
+    click.x = 2.0 * event.clientX / window.innerWidth - 1
+    click.y = 1 -2.0 * event.clientY / window.innerHeight
     raycaster.setFromCamera(click, camera)
     val intersects = raycaster.intersectObjects(scene.children, true)
     val objects = intersects.map{ it.`object` }
@@ -456,15 +459,19 @@ fun objectClicked(intersects: List<Object3D>) =
 fun focusOn(obj: Object3D) {
   console.log("focused on", obj)
   focused = obj
+  updateMenu(obj)
+}
+
+fun updateMenu(obj: Object3D) {
   val pos = Vector3().let(obj::getWorldPosition)
-  menuText.set(TextProps("Selected: ${focused?.name}"))
+  menuText.set(TextProps("Selected: ${focused?.name?.take(8)}..."))
   xText.set(TextProps("X: ${pos.x}"))
   yText.set(TextProps("Y: ${pos.y}"))
   zText.set(TextProps("Z: ${pos.z}"))
 }
 
 fun buttonClicked(intersects: List<Object3D>): Block? {
-  console.log("Something clicked")
+//  console.log("Something clicked")
   return intersects.getOrNull(0)
     ?.let { findAncestorInList(it, buttons) as Block? }
     ?.also{ console.log("found button", it)}
