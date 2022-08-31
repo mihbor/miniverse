@@ -63,9 +63,24 @@ var focused: Object3D? = null
 val raycaster = Raycaster().apply {
   far = 2e8
 }
-
 fun main() {
-  MDS.init {  }
+  MDS.init { msg: dynamic ->
+    val event = msg.event
+    when(event) {
+      "inited" -> {
+        if (MDS.logging) console.log("Connected to Minima.")
+        scope.launch {
+          //DROP TABLE IF EXISTS coinpos;
+          MDS.sql("""CREATE TABLE IF NOT EXISTS coinpos(
+            coinid VARCHAR(69) PRIMARY KEY NOT NULL,
+            x DECIMAL(20,10),
+            y DECIMAL(20,10),
+            z DECIMAL(20,10)
+          );""".trimMargin())
+        }
+      }
+    }
+  }
   window.onresize = {
     camera.aspect = window.aspectRatio
     camera.updateProjectionMatrix()
@@ -192,13 +207,13 @@ val idleButtonState = BlockState(
 val xControl = Block(BlockProps().apply {
   contentDirection = "row"
   backgroundOpacity = 0.0
-}).apply{
+}).apply {
   val minusButton = Block(plusMinusButtonProps).apply {
     add(Text(TextProps("-")))
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.x -= 1.0; updateMenu(it); console.log("decX") } }
+      onSet = { focused?.let { it.position.x -= 1.0; updateCoin(it); console.log("decX") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -221,7 +236,7 @@ val xControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.x += 1.0; updateMenu(it); console.log("incX") } }
+      onSet = { focused?.let { it.position.x += 1.0; updateCoin(it); console.log("incX") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -238,7 +253,7 @@ val yControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.y -= 1.0; updateMenu(it); console.log("decY") } }
+      onSet = { focused?.let { it.position.y -= 1.0; updateCoin(it); console.log("decY") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -260,7 +275,7 @@ val yControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.y += 1.0; updateMenu(it); console.log("incY") } }
+      onSet = { focused?.let { it.position.y += 1.0; updateCoin(it); console.log("incY") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -278,7 +293,7 @@ val zControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.z -= 1.0; updateMenu(it); console.log("decZ") } }
+      onSet = { focused?.let { it.position.z -= 1.0; updateCoin(it); console.log("decZ") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -301,7 +316,7 @@ val zControl = Block(BlockProps().apply {
     setupState(BlockState(
       state = "selected",
       attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.z += 1.0; updateMenu(it); console.log("incZ") } }
+      onSet = { focused?.let { it.position.z += 1.0; updateCoin(it); console.log("incZ") } }
     ))
     setupState(idleButtonState)
     setupState(hoveredButtonState)
@@ -460,6 +475,14 @@ fun focusOn(obj: Object3D) {
   console.log("focused on", obj)
   focused = obj
   updateMenu(obj)
+}
+
+fun updateCoin(obj: Object3D) {
+  updateMenu(obj)
+  scope.launch {
+    MDS.sql("""INSERT INTO coinpos VALUES ('${obj.name}', ${obj.position.x}, ${obj.position.y}, ${obj.position.z})
+      ON DUPLICATE KEY UPDATE x = ${obj.position.x}, y = ${obj.position.y}, z = ${obj.position.z};""")
+  }
 }
 
 fun updateMenu(obj: Object3D) {
