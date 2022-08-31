@@ -135,8 +135,17 @@ fun main() {
             coinObj.add(text)
             coins.put(coin, coinObj)
             scene.add(coinObj)
-            coinObj.position.x = 8 * i
-            coinObj.position.z = -40
+            val sql = MDS.sql("SELECT * FROM coinpos WHERE coinid = '${coin.coinid}';")
+            val rows = sql.rows as Array<dynamic>
+            console.log("rows:", rows)
+            rows.takeIf { it.size == 1 }?.let {
+              coinObj.position.x = (it[0].X as String).toDouble()
+              coinObj.position.y = (it[0].Y as String).toDouble()
+              coinObj.position.z = (it[0].Z as String).toDouble()
+            } ?: run{
+              coinObj.position.x = 8 * i
+              coinObj.position.z = -40
+            }
             ball.rotation.y = -PI / 2
             text.position.set(4, 4, 0)
             ThreeMeshUI.update()

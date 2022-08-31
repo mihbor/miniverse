@@ -90,7 +90,7 @@ object MDS {
     }
     
     if(logging){
-      log("MDS UID  : "+minidappuid)
+      log("MDS UID  : "+ minidappuid)
     }
     
     val mainport 	= port+1
@@ -135,6 +135,12 @@ object MDS {
    */
   fun sql(command: String, callback: Callback = null){
     httpPostAsync("${mainhost}sql?uid=$minidappuid", command, callback)
+  }
+  
+  suspend fun sql(miniFunc: String) = suspendCoroutine<dynamic> { cont ->
+    sql(miniFunc) { response ->
+      cont.resumeWith(Result.success(response))
+    }
   }
   
   /**
