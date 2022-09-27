@@ -45,3 +45,26 @@ data class Token(
   val totalamount: String? = null,
   val scale: String? = null
 )
+
+@Serializable
+data class Contact(
+  val id: Int,
+  val publickey: String,
+  val currentaddress: String,
+  val myaddress: String,
+  val lastseen: Int,
+  val date: String,
+  val chaintip: String,
+  val samechain: Boolean,
+  val extradata: ExtraData
+)
+
+@Serializable
+data class ExtraData(
+  val name: String,
+  val minimaaddress: String,
+  val topblock: String,
+  val checkblock: String,
+  val checkhash: String,
+  val mls: String
+)

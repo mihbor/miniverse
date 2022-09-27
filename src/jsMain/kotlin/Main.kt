@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import minima.MDS
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.width
+import org.jetbrains.compose.web.dom.Br
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Text
 import org.jetbrains.compose.web.dom.TextInput
@@ -90,7 +91,9 @@ fun main() {
   animate()
   
   var miniAddress by mutableStateOf("")
+  var maxContact by mutableStateOf("")
   renderComposableInBody {
+    Text("Minima address:")
     TextInput(miniAddress) {
       style {
         width(500.px)
@@ -106,9 +109,38 @@ fun main() {
     }) {
       Text("Go!")
     }
+    Br()
+    Text("Maxima contact:")
+    TextInput(maxContact) {
+      style {
+        width(800.px)
+      }
+      onInput {
+        maxContact = it.value
+      }
+    }
+    Button({
+      onClick {
+        connect(maxContact)
+      }
+    }) {
+      Text("Connect!")
+    }
   }
 }
 
+fun connect(maxiAddress: String) {
+  scope.launch {
+    val contacts = getContacts()
+    val contact = contacts.firstOrNull { it.currentaddress == maxiAddress } ?: run{
+      addContact(maxiAddress)
+      contacts.first{ it.currentaddress == maxiAddress }
+    }
+    console.log("contact:", contact)
+    val delivered = sendMessage(contact.publickey, "test")
+    console.log("delivered:", delivered)
+  }
+}
 fun reload(miniAddress: String) {
   scope.launch {
     val newCoins = getCoins(address = miniAddress, sendable = false)
