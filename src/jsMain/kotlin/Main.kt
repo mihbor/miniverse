@@ -62,6 +62,8 @@ val raycaster = Raycaster().apply {
 }
 
 fun main() {
+  var miniAddress by mutableStateOf("")
+  
   MDS.init { msg: dynamic ->
     val event = msg.event
     when(event) {
@@ -80,16 +82,29 @@ fun main() {
       "MAXIMA" -> if (msg.data.application == MINIDAPP) {
         val data = (msg.data.data as String).substring(2).decodeHex().decodeToString()
         val sender = msg.data.from as String
-        console.log("received: $data from ")
+        console.log("received: $data from $sender")
         val splits = data.split(";")
         when (splits[0]) {
           "inventory-request" -> {
             val address = splits[1]
             scope.launch {
               val coins = getCoins(address = address, sendable = true).map {
-                it.coinid to getCoinPosition(it.coinid)!!
-              }.map{ "${it.first};${it.second.x};${it.second.y};${it.second.z}" }
+                val pos = getCoinPosition(it.coinid)!!
+                "${it.coinid};${exportCoin(it.coinid)};${pos.x};${pos.y};${pos.z}"
+              }
               sendMessage(sender, "inventory-response;${coins.size};${coins.joinToString(";")}")
+            }
+          }
+          "inventory-response" -> {
+            val size = splits[1].toInt()
+            check(splits.size == size * 5 + 2) { "Expected message elements ${size * 5 + 2}, got ${splits.size}" }
+            scope.launch {
+              val coins = (0 until size).map { index ->
+                val coinid = splits[index*5 + 2]
+                importCoin(splits[index*5 + 3])
+                updateCoinPosition(coinid, CoinPosition(splits[index*5 + 4].toDouble(), splits[index*5 + 5].toDouble(), splits[index*5 + 6].toDouble()))
+              }
+              reload(miniAddress)
             }
           }
         }
@@ -109,7 +124,6 @@ fun main() {
   
   animate()
   
-  var miniAddress by mutableStateOf("")
   var maxContact by mutableStateOf("")
   renderComposableInBody {
     Text("Minima address:")
@@ -198,7 +212,7 @@ fun reload(miniAddress: String) {
   }
 }
 
-fun updateButtons() {
+fun updateButtonStates() {
 //    console.log("pointermove ${JSON.stringify(mouse)}")
   if (mouse.x != null && mouse.y != null) {
     raycaster.setFromCamera(mouse, camera)
@@ -242,7 +256,7 @@ fun animate() {
   camera.rotation.x = cameraRotation.x
   camera.rotation.y = cameraRotation.y
   ThreeMeshUI.update()
-  updateButtons()
+  updateButtonStates()
   renderer.render(scene, camera)
   
   window.requestAnimationFrame { animate() }
@@ -251,7 +265,6 @@ fun animate() {
 fun updateCoin(obj: Object3D) {
   updateMenu(obj)
   scope.launch {
-    MDS.sql("""INSERT INTO coinpos VALUES ('${obj.name}', ${obj.position.x}, ${obj.position.y}, ${obj.position.z})
-      ON DUPLICATE KEY UPDATE x = ${obj.position.x}, y = ${obj.position.y}, z = ${obj.position.z};""")
+    updateCoinPosition(obj.name, CoinPosition(obj.position.x.toDouble(), obj.position.y.toDouble(), obj.position.z.toDouble()))
   }
 }

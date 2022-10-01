@@ -22,6 +22,15 @@ suspend fun getCoins(tokenId: String? = null, address: String? = null, coinId: S
   return coins.sortedWith(compareBy({ it.tokenid }, { it.amount }))
 }
 
+suspend fun exportCoin(coinId: String): String {
+  val coinexport = MDS.cmd("coinexport coinid:$coinId")
+  return coinexport.response
+}
+
+suspend fun importCoin(data: String) {
+  val coinimport = MDS.cmd("coinimport data:$data")
+}
+
 suspend fun getContacts(): List<Contact> {
   val maxcontacts = MDS.cmd("maxcontacts")
   return json.decodeFromDynamic(maxcontacts.response.contacts)
@@ -62,4 +71,10 @@ suspend fun getCoinPosition(coinId: String): CoinPosition? {
       (it[0].Z as String).toDouble()
     )
   }
+}
+
+suspend fun updateCoinPosition(coinId: String, position: CoinPosition) {
+  
+  MDS.sql("""INSERT INTO coinpos VALUES ('$coinId', ${position.x}, ${position.y}, ${position.z})
+      ON DUPLICATE KEY UPDATE x = ${position.x}, y = ${position.y}, z = ${position.z};""")
 }

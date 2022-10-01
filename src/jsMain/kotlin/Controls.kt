@@ -9,7 +9,10 @@ import org.w3c.dom.events.MouseEvent
 import org.w3c.dom.events.WheelEvent
 import org.w3c.dom.get
 import org.w3c.dom.pointerevents.PointerEvent
-import three.js.*
+import three.js.Color
+import three.js.Mesh
+import three.js.Object3D
+import three.js.Vector2
 import three.mesh.ui.*
 import kotlin.math.PI
 import kotlin.math.sqrt
@@ -82,101 +85,108 @@ val idleButtonState = BlockState(
   }
 )
 
+val minusXButton = Block(plusMinusButtonProps).apply {
+  add(Text(TextProps("-")))
+  setupState(BlockState(
+    state = "selected",
+    attributes = plusMinusButtonProps,
+    onSet = { focused?.let { it.position.x -= 1.0; updateCoin(it); console.log("decX") } }
+  ))
+  setupState(idleButtonState)
+  setupState(hoveredButtonState)
+}
+
+val plusXButton = Block(plusMinusButtonProps).apply {
+  add(Text(TextProps("+")))
+  setupState(BlockState(
+    state = "selected",
+    attributes = plusMinusButtonProps,
+    onSet = { focused?.let { it.position.x += 1.0; updateCoin(it); console.log("incX") } }
+  ))
+  setupState(idleButtonState)
+  setupState(hoveredButtonState)
+}
+
+val minusYButton = Block(plusMinusButtonProps).apply {
+  add(Text(TextProps("-")))
+  setupState(BlockState(
+    state = "selected",
+    attributes = plusMinusButtonProps,
+    onSet = { focused?.let { it.position.y -= 1.0; updateCoin(it); console.log("decY") } }
+  ))
+  setupState(idleButtonState)
+  setupState(hoveredButtonState)
+}
+
+val plusYButton = Block(plusMinusButtonProps).apply {
+  add(Text(TextProps("+")))
+  setupState(BlockState(
+    state = "selected",
+    attributes = plusMinusButtonProps,
+    onSet = { focused?.let { it.position.y += 1.0; updateCoin(it); console.log("incY") } }
+  ))
+  setupState(idleButtonState)
+  setupState(hoveredButtonState)
+}
+
+val minusZButton = Block(plusMinusButtonProps).apply {
+  add(Text(TextProps("-")))
+  setupState(BlockState(
+    state = "selected",
+    attributes = plusMinusButtonProps,
+    onSet = { focused?.let { it.position.z -= 1.0; updateCoin(it); console.log("decZ") } }
+  ))
+  setupState(idleButtonState)
+  setupState(hoveredButtonState)
+}
+
+val plusZButton = Block(plusMinusButtonProps).apply {
+  add(Text(TextProps("+")))
+  setupState(BlockState(
+    state = "selected",
+    attributes = plusMinusButtonProps,
+    onSet = { focused?.let { it.position.z += 1.0; updateCoin(it); console.log("incZ") } }
+  ))
+  setupState(idleButtonState)
+  setupState(hoveredButtonState)
+}
+
 val xControl = Block(BlockProps().apply {
   contentDirection = "row"
   backgroundOpacity = 0.0
 }).apply {
-  val minusButton = Block(plusMinusButtonProps).apply {
-    add(Text(TextProps("-")))
-    setupState(BlockState(
-      state = "selected",
-      attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.x -= 1.0; updateCoin(it); console.log("decX") } }
-    ))
-    setupState(idleButtonState)
-    setupState(hoveredButtonState)
-  }
-  add(minusButton)
-  buttons.add(minusButton)
+  add(minusXButton)
+  buttons.add(minusXButton)
   add(Block(plusMinusTextProps).apply {
     add(xText)
   })
-  val plusButton = Block(plusMinusButtonProps).apply {
-    add(Text(TextProps("+")))
-    setupState(BlockState(
-      state = "selected",
-      attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.x += 1.0; updateCoin(it); console.log("incX") } }
-    ))
-    setupState(idleButtonState)
-    setupState(hoveredButtonState)
-  }
-  add(plusButton)
-  buttons.add(plusButton)
+  add(plusXButton)
+  buttons.add(plusXButton)
 }
+
 val yControl = Block(BlockProps().apply {
   contentDirection = "row"
   backgroundOpacity = 0.0
 }).apply{
-  val minusButton = Block(plusMinusButtonProps).apply {
-    add(Text(TextProps("-")))
-    setupState(BlockState(
-      state = "selected",
-      attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.y -= 1.0; updateCoin(it); console.log("decY") } }
-    ))
-    setupState(idleButtonState)
-    setupState(hoveredButtonState)
-  }
-  add(minusButton)
+  add(minusYButton)
   add(Block(plusMinusTextProps).apply {
     add(yText)
   })
-  val plusButton = Block(plusMinusButtonProps).apply {
-    add(Text(TextProps("+")))
-    setupState(BlockState(
-      state = "selected",
-      attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.y += 1.0; updateCoin(it); console.log("incY") } }
-    ))
-    setupState(idleButtonState)
-    setupState(hoveredButtonState)
-  }
-  add(plusButton)
-  buttons += minusButton
-  buttons += plusButton
+  add(plusYButton)
+  buttons += minusYButton
+  buttons += plusYButton
 }
 val zControl = Block(BlockProps().apply {
   contentDirection = "row"
   backgroundOpacity = 0.0
 }).apply{
-  val minusButton = Block(plusMinusButtonProps).apply {
-    add(Text(TextProps("-")))
-    setupState(BlockState(
-      state = "selected",
-      attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.z -= 1.0; updateCoin(it); console.log("decZ") } }
-    ))
-    setupState(idleButtonState)
-    setupState(hoveredButtonState)
-  }
-  add(minusButton)
-  buttons += minusButton
+  add(minusZButton)
+  buttons += minusZButton
   add(Block(plusMinusTextProps).apply {
     add(zText)
   })
-  val plusButton = Block(plusMinusButtonProps).apply {
-    add(Text(TextProps("+")))
-    setupState(BlockState(
-      state = "selected",
-      attributes = plusMinusButtonProps,
-      onSet = { focused?.let { it.position.z += 1.0; updateCoin(it); console.log("incZ") } }
-    ))
-    setupState(idleButtonState)
-    setupState(hoveredButtonState)
-  }
-  add(plusButton)
-  buttons += plusButton
+  add(plusZButton)
+  buttons += plusZButton
 }
 
 fun createMenuDisplay() = Block(uiProps).apply {
@@ -273,20 +283,18 @@ fun focusOn(obj: Object3D, coin: Coin) {
   console.log("focused on", obj)
   focused = obj
   scope.launch {
-    if (getCoins(coinId = coin.coinid, sendable = true).isNotEmpty()) {
-      console.log("sendable: true")
-      if (!camera.children.contains(menu)) {
-        camera.add(menu)
-        updateMenu(obj)
-      }
-    } else {
-      camera.remove(menu)
+    val sendable = getCoins(coinId = coin.coinid, sendable = true).isNotEmpty()
+    console.log("sendable: $sendable")
+    if (sendable) {
+      camera.add(menu)
+      updateMenu(obj)
     }
   }
 }
 
 fun updateMenu(obj: Object3D) {
-  val pos = Vector3().let(obj::getWorldPosition)
+//  val pos = Vector3().let(obj::getWorldPosition)
+  val pos = obj.position
   menuText.set(TextProps("Selected: ${focused?.name?.take(8)}..."))
   xText.set(TextProps("X: ${pos.x}"))
   yText.set(TextProps("Y: ${pos.y}"))
