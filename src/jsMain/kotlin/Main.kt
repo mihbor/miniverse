@@ -6,7 +6,9 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import minima.Coin
 import minima.MDS
+import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.width
 import org.jetbrains.compose.web.dom.Br
@@ -76,7 +78,21 @@ fun main() {
         }
       }
       "MAXIMA" -> if (msg.data.application == MINIDAPP) {
-        window.alert((msg.data.data as String).substring(2).decodeHex().decodeToString())
+        val data = (msg.data.data as String).substring(2).decodeHex().decodeToString()
+        val sender = msg.data.from as String
+        console.log("received: $data from ")
+        val splits = data.split(";")
+        when (splits[0]) {
+          "inventory-request" -> {
+            val address = splits[1]
+            scope.launch {
+              val coins = getCoins(address = address, sendable = true).map {
+                it.coinid to getCoinPosition(it.coinid)!!
+              }.map{ "${it.first};${it.second.x};${it.second.y};${it.second.z}" }
+              sendMessage(sender, "inventory-response;${coins.size};${coins.joinToString(";")}")
+            }
+          }
+        }
       }
     }
   }
@@ -108,7 +124,9 @@ fun main() {
     Button({
       onClick {
         reload(miniAddress)
+        if (maxContact.isNotBlank()) connect(maxContact, miniAddress)
       }
+      if (miniAddress.isBlank()) disabled()
     }) {
       Text("Go!")
     }
@@ -124,23 +142,15 @@ fun main() {
     }
     Button({
       onClick {
-        connect(maxContact)
+        connect(maxContact, miniAddress)
       }
+      if (miniAddress.isBlank() or maxContact.isBlank()) disabled()
     }) {
       Text("Connect!")
     }
   }
 }
 
-fun connect(maxiAddress: String) {
-  scope.launch {
-    val contacts = getContacts()
-    val contact = contacts.firstOrNull { it.currentaddress == maxiAddress } ?: addContact(maxiAddress)
-    console.log("contact:", contact)
-    val delivered = sendMessage(contact.publickey, "test")
-    console.log("delivered:", delivered)
-  }
-}
 fun reload(miniAddress: String) {
   scope.launch {
     val newCoins = getCoins(address = miniAddress, sendable = false)
@@ -151,8 +161,8 @@ fun reload(miniAddress: String) {
     focused = null
     camera.remove(menu)
 //          val newCoins = listOf(
-//            Coin("", ONE, ONE, "0xC01N1D", true, "0x00"),
-//            Coin("", ONE, ONE, "0xC01N1D2", true, "0x01"),
+//            minima.Coin("", ONE, ONE, "0xC01N1D", true, "0x00"),
+//            minima.Coin("", ONE, ONE, "0xC01N1D2", true, "0x01"),
 //          )
     newCoins.forEachIndexed { i, coin ->
       val coinObj = Object3D()
@@ -173,13 +183,10 @@ fun reload(miniAddress: String) {
       coinObj.add(text)
       coins.put(coinObj, coin)
       scene.add(coinObj)
-      val sql = MDS.sql("SELECT * FROM coinpos WHERE coinid = '${coin.coinid}';")
-      val rows = sql.rows as Array<dynamic>
-      console.log("rows:", rows)
-      rows.takeIf { it.size == 1 }?.let {
-        coinObj.position.x = (it[0].X as String).toDouble()
-        coinObj.position.y = (it[0].Y as String).toDouble()
-        coinObj.position.z = (it[0].Z as String).toDouble()
+      getCoinPosition(coin.coinid)?.let {
+        coinObj.position.x = it.x
+        coinObj.position.y = it.y
+        coinObj.position.z = it.z
       } ?: run{
         coinObj.position.x = 8 * i
         coinObj.position.z = -40

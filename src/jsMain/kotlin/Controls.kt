@@ -1,6 +1,7 @@
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
+import minima.Coin
 import org.w3c.dom.Touch
 import org.w3c.dom.TouchEvent
 import org.w3c.dom.events.Event
