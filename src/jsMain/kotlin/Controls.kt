@@ -187,7 +187,7 @@ fun createMenuDisplay() = Block(uiProps).apply {
   add(xControl)
   add(yControl)
   add(zControl)
-  position.set(1, -0.7, -2)
+  position.set(0, -0.7, -2)
 }
 
 fun registerListeners() {

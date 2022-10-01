@@ -75,6 +75,9 @@ fun main() {
           );""".trimMargin())
         }
       }
+      "MAXIMA" -> if (msg.data.application == MINIDAPP) {
+        window.alert((msg.data.data as String).substring(2).decodeHex().decodeToString())
+      }
     }
   }
   window.onresize = {
@@ -132,10 +135,7 @@ fun main() {
 fun connect(maxiAddress: String) {
   scope.launch {
     val contacts = getContacts()
-    val contact = contacts.firstOrNull { it.currentaddress == maxiAddress } ?: run{
-      addContact(maxiAddress)
-      contacts.first{ it.currentaddress == maxiAddress }
-    }
+    val contact = contacts.firstOrNull { it.currentaddress == maxiAddress } ?: addContact(maxiAddress)
     console.log("contact:", contact)
     val delivered = sendMessage(contact.publickey, "test")
     console.log("delivered:", delivered)
