@@ -1,0 +1,17 @@
+image: openjdk:8-jdk
+before_script:
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+
+pages:
+  stage: build
+  script:
+    - ./gradlew minidappDistribution
+    - mkdir .public
+    - cp -r build/minidapp/* .public
+    - rm -rf public
+    - mv .public public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
