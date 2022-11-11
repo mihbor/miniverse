@@ -1,7 +1,7 @@
 plugins {
-  kotlin("multiplatform") version "1.6.10"
-  kotlin("plugin.serialization") version "1.6.10"
-  id("org.jetbrains.compose") version "1.1.1"
+  kotlin("multiplatform") version "1.7.20"
+  kotlin("plugin.serialization") version "1.7.20"
+  id("org.jetbrains.compose") version "1.2.1"
 }
 
 group = "org.example"
@@ -28,10 +28,10 @@ kotlin {
         implementation(compose.web.core)
         implementation(compose.runtime)
         
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
   
-        implementation("com.ionspin.kotlin:bignum:0.3.3")
-        implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.3")
+        implementation("com.ionspin.kotlin:bignum:0.3.7")
+        implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
         api(project(":threejs_kt"))
         api(project(":three-mesh-ui_kt"))
       }
