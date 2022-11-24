@@ -8,9 +8,15 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 
 repositories {
+  google()
   mavenCentral()
   maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-  google()
+  maven("https://maven.pkg.github.com/mihbor/MinimaK") {
+    credentials {
+      username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+      password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+    }
+  }
 }
 
 kotlin {
@@ -32,6 +38,10 @@ kotlin {
   
         implementation("com.ionspin.kotlin:bignum:0.3.7")
         implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
+        implementation("ltd.mbor:minimak:0.1-SNAPSHOT") {
+          isChanging = true
+        }
+
         api(project(":threejs_kt"))
         api(project(":three-mesh-ui_kt"))
       }
@@ -44,4 +54,8 @@ tasks.register<Zip>("minidappDistribution") {
   archiveFileName.set("${project.name}.mds.zip")
   destinationDirectory.set(layout.buildDirectory.dir("minidapp"))
   from(layout.buildDirectory.dir("distributions"))
+}
+
+configurations.all {
+  resolutionStrategy.cacheChangingModulesFor(1, "minutes")
 }

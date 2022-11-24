@@ -1,7 +1,9 @@
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.launch
-import minima.Coin
+import ltd.mbor.minimak.Coin
+import ltd.mbor.minimak.MDS
+import ltd.mbor.minimak.getCoins
 import org.w3c.dom.Touch
 import org.w3c.dom.TouchEvent
 import org.w3c.dom.events.Event
@@ -283,7 +285,7 @@ fun focusOn(obj: Object3D, coin: Coin) {
   console.log("focused on", obj)
   focused = obj
   scope.launch {
-    val sendable = getCoins(coinId = coin.coinid, sendable = true).isNotEmpty()
+    val sendable = MDS.getCoins(coinId = coin.coinId, sendable = true).isNotEmpty()
     console.log("sendable: $sendable")
     if (sendable) {
       camera.add(menu)

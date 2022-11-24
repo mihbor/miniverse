@@ -6,8 +6,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import minima.Coin
-import minima.MDS
+import ltd.mbor.minimak.*
 import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.css.px
 import org.jetbrains.compose.web.css.width
@@ -61,10 +60,25 @@ val raycaster = Raycaster().apply {
   far = 2e8
 }
 
-fun main() {
+object form {
+  
+  //Return the GET parameter by scraping the location..
+  fun getParams(parameterName: String): String?{
+    var result: String? = null
+    val items = window.location.search.substring(1).split("&");
+    for (item in items) {
+      val tmp = item.split("=");
+      //console.log("TMP:"+tmp);
+      if (tmp[0] == parameterName) result = decodeURIComponent(tmp[1])
+    }
+    return result
+  }
+}
+
+suspend fun main() {
   var miniAddress by mutableStateOf("")
   
-  MDS.init { msg: dynamic ->
+  MDS.init(form.getParams("uid") ?: "0x00", window.location.hostname, 9004) { msg: dynamic ->
     val event = msg.event
     when(event) {
       "inited" -> {
@@ -88,11 +102,11 @@ fun main() {
           "inventory-request" -> {
             val address = splits[1]
             scope.launch {
-              val coins = getCoins(address = address, sendable = true).map {
-                val pos = getCoinPosition(it.coinid)!!
-                "${it.coinid};${exportCoin(it.coinid)};${pos.x};${pos.y};${pos.z}"
+              val coins = MDS.getCoins(address = address, sendable = true).map {
+                val pos = getCoinPosition(it.coinId)!!
+                "${it.coinId};${MDS.exportCoin(it.coinId)};${pos.x};${pos.y};${pos.z}"
               }
-              sendMessage(sender, "inventory-response;${coins.size};${coins.joinToString(";")}")
+              MDS.sendMessage(MINIDAPP, sender, "inventory-response;${coins.size};${coins.joinToString(";")}")
             }
           }
           "inventory-response" -> {
@@ -101,7 +115,7 @@ fun main() {
             scope.launch {
               val coins = (0 until size).map { index ->
                 val coinid = splits[index*5 + 2]
-                importCoin(splits[index*5 + 3])
+                MDS.importCoin(splits[index*5 + 3])
                 updateCoinPosition(coinid, CoinPosition(splits[index*5 + 4].toDouble(), splits[index*5 + 5].toDouble(), splits[index*5 + 6].toDouble()))
               }
               reload(miniAddress)
@@ -167,7 +181,7 @@ fun main() {
 
 fun reload(miniAddress: String) {
   scope.launch {
-    val newCoins = getCoins(address = miniAddress, sendable = false)
+    val newCoins = MDS.getCoins(address = miniAddress, sendable = false)
     coins.forEach {
       scene.remove(it.key)
     }
@@ -180,7 +194,7 @@ fun reload(miniAddress: String) {
 //          )
     newCoins.forEachIndexed { i, coin ->
       val coinObj = Object3D()
-      coinObj.name = coin.coinid
+      coinObj.name = coin.coinId
       val ball = Mesh(SphereGeometry(3, 100, 100), MeshStandardMaterial().apply{
         map = minimaTex
       })
@@ -191,13 +205,13 @@ fun reload(miniAddress: String) {
           height = 1.0
           backgroundOpacity = 0.0
         }).apply {
-          add(Text(TextProps(coin.tokenamount?.toPlainString() ?: coin.amount.toPlainString())))
+          add(Text(TextProps(coin.tokenAmount?.toPlainString() ?: coin.amount.toPlainString())))
         })
       }
       coinObj.add(text)
       coins.put(coinObj, coin)
       scene.add(coinObj)
-      getCoinPosition(coin.coinid)?.let {
+      getCoinPosition(coin.coinId)?.let {
         coinObj.position.x = it.x
         coinObj.position.y = it.y
         coinObj.position.z = it.z
