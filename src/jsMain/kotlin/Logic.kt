@@ -17,6 +17,14 @@ fun connect(maxiAddress: String, miniAddress: String) {
   }
 }
 
+suspend fun MDS.addContact(maxiAddress: String): Contact? {
+  val maxcontacts = cmd("maxcontacts action:add contact:$maxiAddress")!!
+  return if (maxcontacts.jsonBoolean("status") == true) {
+    console.log("data: ${maxcontacts.jsonObject["response"]!!.jsonObject["maxima"]?.jsonString("data")?.decodeHex()}")
+    getContacts().first { it.currentAddress == maxiAddress }
+  }else null
+}
+
 suspend fun getCoinPosition(coinId: String): CoinPosition? {
   val sql = MDS.sql("SELECT * FROM coinpos WHERE coinid = '$coinId';")!!
   val rows = sql.jsonObject["rows"]!!.jsonArray

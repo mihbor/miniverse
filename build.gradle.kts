@@ -38,9 +38,7 @@ kotlin {
   
         implementation("com.ionspin.kotlin:bignum:0.3.7")
         implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
-        implementation("ltd.mbor:minimak:0.1-SNAPSHOT") {
-          isChanging = true
-        }
+        implementation("ltd.mbor:minimak:0.1-SNAPSHOT")
 
         api(project(":threejs_kt"))
         api(project(":three-mesh-ui_kt"))
