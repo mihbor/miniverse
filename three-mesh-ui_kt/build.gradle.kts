@@ -8,7 +8,7 @@ repositories {
 
 dependencies {
   api(project(":threejs_kt"))
-  implementation(npm("three-mesh-ui", "4.6.0"))
+  implementation(npm("three-mesh-ui", "6.5.2"))
 }
 
 kotlin {
