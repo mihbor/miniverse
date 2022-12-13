@@ -4,7 +4,7 @@ plugins {
   id("org.jetbrains.compose") version "1.2.1"
 }
 
-group = "org.example"
+group = "ltd.mbor.miniverse"
 version = "1.0-SNAPSHOT"
 
 repositories {

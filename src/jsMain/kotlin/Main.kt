@@ -103,7 +103,7 @@ suspend fun main() {
             val address = splits[1]
             scope.launch {
               val coins = MDS.getCoins(address = address, sendable = true).map {
-                val pos = getCoinPosition(it.coinId)!!
+                val pos = getCoinPosition(it.coinId) ?: CoinPosition.default
                 "${it.coinId};${MDS.exportCoin(it.coinId)};${pos.x};${pos.y};${pos.z}"
               }
               MDS.sendMessage(MINIDAPP, sender, "inventory-response;${coins.size};${coins.joinToString(";")}")

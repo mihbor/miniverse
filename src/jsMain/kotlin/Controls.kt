@@ -153,10 +153,14 @@ val plusZButton = Block(plusMinusButtonProps).apply {
   setupState(hoveredButtonState)
 }
 
-val xControl = Block(BlockProps().apply {
-  contentDirection = "row"
-  backgroundOpacity = 0.0
-}).apply {
+fun Row(block: Block.() -> Unit): Block {
+  return Block(BlockProps().apply {
+    contentDirection = "row"
+    backgroundOpacity = 0.0
+  }).apply(block)
+}
+
+val xControl = Row {
   add(minusXButton)
   buttons.add(minusXButton)
   add(Block(plusMinusTextProps).apply {
@@ -166,10 +170,7 @@ val xControl = Block(BlockProps().apply {
   buttons.add(plusXButton)
 }
 
-val yControl = Block(BlockProps().apply {
-  contentDirection = "row"
-  backgroundOpacity = 0.0
-}).apply{
+val yControl = Row{
   add(minusYButton)
   add(Block(plusMinusTextProps).apply {
     add(yText)
@@ -178,10 +179,7 @@ val yControl = Block(BlockProps().apply {
   buttons += minusYButton
   buttons += plusYButton
 }
-val zControl = Block(BlockProps().apply {
-  contentDirection = "row"
-  backgroundOpacity = 0.0
-}).apply{
+val zControl = Row{
   add(minusZButton)
   buttons += minusZButton
   add(Block(plusMinusTextProps).apply {
